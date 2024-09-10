@@ -4,9 +4,10 @@ define('ICON_DEFAULT', '`');
 define('ICON_PLAYER', 'X');
 define("ICON_COMPUTER", 'O');
 
+$message = '';
 if (isset($_GET['action'])) {
     if ($_GET['action'] == 'reset') {
-        echo start_new_game();
+        $message .= start_new_game();
     } elseif ($_GET['action'] == 'move') {
         // get the game session id
         $game_session_id = $_GET['game_session_id'];
@@ -17,22 +18,21 @@ if (isset($_GET['action'])) {
         $board[$move['row']][$move['column']] = ICON_PLAYER;
 
         if (check_win_condition($board)) {
-            echo 'Players Wins';
+            $message .= 'Players Wins';
             $_SESSION['game_over'] = true;
         } else {
             $board = play_computer_move($board);
 
             if (check_win_condition($board)) {
-                echo 'Computer Wins';
+                $message .= 'Computer Wins';
                 $_SESSION['game_over'] = true;
             }
 
             $_SESSION[$game_session_id]['board'] = $board;          
         }
-        echo display_board($game_session_id, $board);  
+        $message.= display_board($game_session_id, $board);  
     }
-} else {
-    echo 'Do something';
+    display_output($message);
 }
 
 function start_new_game() {
@@ -60,7 +60,7 @@ function display_board($game_session_id, $board) {
             if ($_SESSION['game_over']) {
                 $btn_action = '';
             } else {
-                $btn_action = 'hx-get="game.php?game_session_id=' . $game_session_id . '&action=move&row=' . $i . '&column=' . $j . '" hx-target="#game-board"';
+                $btn_action = 'hx-get="?game_session_id=' . $game_session_id . '&action=move&row=' . $i . '&column=' . $j . '" hx-target="#game-board"';
             }
             if ($board[$i][$j] == ICON_DEFAULT) {
                 $display_board .= '<button class="btn btn-info btn-large p-5" '.$btn_action.'>' . $board[$i][$j] . '</button>';
@@ -118,3 +118,42 @@ function play_computer_move($board) {
 
     return $board;
 }
+
+function display_output($message) {
+    echo $message;
+    die();
+}
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <title>HTMX TicTacToe</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-6">
+                <h2>TicTacToe</h2>
+                <button hx-get="?action=reset" hx-target="#game-board">New Game</button>
+
+                <p>Author: Demola Oladipo</p>
+                <p><a href="https://oladipo.com.ng">Website</a></p>
+                <p><a href="https://x.com/streetlife">X</a></p>
+            </div>
+            <div class="col-6">
+                <div class="row">
+                    <div class="col-12">
+                        <div id="game-board"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
